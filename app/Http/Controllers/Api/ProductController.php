@@ -1,5 +1,5 @@
 <?php
-
+// Commit de test : ajout d’un commentaire pour Git (par Balla)
 namespace App\Http\Controllers\Api;
 
 use App\Http\Controllers\Controller;
@@ -20,10 +20,10 @@ class ProductController extends Controller
     public function index(Request $request)
     {
         $cacheKey = 'products_' . md5(serialize($request->all()));
-        
+
         $products = Cache::remember($cacheKey, 3600, function () use ($request) {
             Log::info('Cache miss for products listing', ['params' => $request->all()]);
-            
+
             $query = Product::with('category')->active();
 
             // Filter by category
@@ -57,7 +57,7 @@ class ProductController extends Controller
             // Sort
             $sortBy = $request->get('sort_by', 'created_at');
             $sortOrder = $request->get('sort_order', 'desc');
-            
+
             if (in_array($sortBy, ['name', 'price', 'created_at', 'stock'])) {
                 $query->orderBy($sortBy, $sortOrder);
             }
@@ -78,7 +78,7 @@ class ProductController extends Controller
     public function show(Product $product)
     {
         $cacheKey = "product_{$product->id}";
-        
+
         $productData = Cache::remember($cacheKey, 3600, function () use ($product) {
             Log::info('Cache miss for product detail', ['product_id' => $product->id]);
             return $product->load('category');
@@ -103,7 +103,7 @@ class ProductController extends Controller
     public function store(Request $request)
     {
         $this->authorize('create', Product::class);
-        
+
         Log::info('Admin creating new product', ['admin_id' => $request->user()->id, 'data' => $request->all()]);
 
         $validator = Validator::make($request->all(), [
@@ -125,17 +125,17 @@ class ProductController extends Controller
         }
 
         $data = $request->all();
-        
+
         // Handle image upload
         if ($request->hasFile('image')) {
             $data['image'] = $this->handleImageUpload($request->file('image'));
         }
 
         $product = Product::create($data);
-        
+
         // Clear cache
         $this->clearProductCache();
-        
+
         Log::info('Product created successfully', ['product_id' => $product->id, 'admin_id' => $request->user()->id]);
 
         return response()->json([
@@ -151,7 +151,7 @@ class ProductController extends Controller
     public function update(Request $request, Product $product)
     {
         $this->authorize('update', $product);
-        
+
         Log::info('Admin updating product', ['product_id' => $product->id, 'admin_id' => $request->user()->id]);
 
         $validator = Validator::make($request->all(), [
@@ -184,11 +184,11 @@ class ProductController extends Controller
         }
 
         $product->update($data);
-        
+
         // Clear cache
         $this->clearProductCache();
         Cache::forget("product_{$product->id}");
-        
+
         Log::info('Product updated successfully', ['product_id' => $product->id, 'admin_id' => $request->user()->id]);
 
         return response()->json([
@@ -204,15 +204,15 @@ class ProductController extends Controller
     public function destroy(Product $product)
     {
         $this->authorize('delete', $product);
-        
+
         Log::info('Admin deleting product', ['product_id' => $product->id, 'admin_id' => auth()->id()]);
 
         $product->delete();
-        
+
         // Clear cache
         $this->clearProductCache();
         Cache::forget("product_{$product->id}");
-        
+
         Log::info('Product deleted successfully', ['product_id' => $product->id]);
 
         return response()->json([
@@ -377,10 +377,10 @@ class ProductController extends Controller
 
         // Générer un nom unique pour l'image
         $filename = time() . '_' . Str::slug(pathinfo($image->getClientOriginalName(), PATHINFO_FILENAME)) . '.' . $image->getClientOriginalExtension();
-        
+
         // Stocker l'image dans le dossier products
         $path = $image->storeAs('products', $filename, 'public');
-        
+
         return $path;
     }
-} 
+}
