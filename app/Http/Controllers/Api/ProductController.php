@@ -26,12 +26,12 @@ class ProductController extends Controller
 
             $query = Product::with('category')->active();
 
-            // Filter by category
+            // Filtrer par catégorie
             if ($request->has('category_id')) {
                 $query->where('category_id', $request->category_id);
             }
 
-            // Search by name or description
+            // Rechercher par nom ou description
             if ($request->has('search')) {
                 $search = $request->search;
                 $query->where(function ($q) use ($search) {
@@ -133,7 +133,7 @@ class ProductController extends Controller
 
         $product = Product::create($data);
 
-        // Clear cache
+        // Vider le cache
         $this->clearProductCache();
 
         Log::info('Product created successfully', ['product_id' => $product->id, 'admin_id' => $request->user()->id]);
@@ -174,7 +174,7 @@ class ProductController extends Controller
 
         $data = $request->all();
 
-        // Handle image upload
+        // Gérer l’upload d’image
         if ($request->hasFile('image')) {
             // Delete old image if exists
             if ($product->image) {

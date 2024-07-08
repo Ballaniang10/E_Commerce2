@@ -29,7 +29,8 @@ class OrderController extends Controller
     {
         $query = Order::with(['user', 'items.product']);
 
-        // Filter by user (clients can only see their own orders)
+        // Filtrer par utilisateur (les clients ne voient que leurs propres commandes)
+
         if (!$request->user()->is_admin) {
             $query->where('user_id', $request->user()->id);
         }
@@ -132,7 +133,8 @@ class OrderController extends Controller
                 })->toArray();
             }
 
-            // Validate stock and calculate total
+             // Valider le stock et calculer le total
+
             foreach ($items as $item) {
                 $product = Product::findOrFail($item['product_id']);
                 if (!$product->isActive()) {
@@ -153,7 +155,7 @@ class OrderController extends Controller
                 $product->decrement('stock', $item['quantity']);
             }
 
-            // Create order
+            // // Créer la commande
             $order = Order::create([
                 'user_id' => $request->user()->id,
                 'status' => 'pending',
@@ -255,7 +257,7 @@ class OrderController extends Controller
         }
 
         $path = storage_path('app/public/' . $order->invoice_path);
-        
+
         if (!file_exists($path)) {
             return response()->json([
                 'success' => false,
@@ -285,7 +287,7 @@ class OrderController extends Controller
         if ($order->user_id !== $user->id) {
             return response()->json(['success' => false, 'message' => 'Unauthorized'], 403);
         }
-        
+
         $order->update(['status' => 'cancelled']);
         return response()->json(['success' => true, 'message' => 'Order cancelled']);
     }
@@ -299,7 +301,7 @@ class OrderController extends Controller
         if ($order->user_id !== $user->id) {
             return response()->json(['success' => false, 'message' => 'Unauthorized'], 403);
         }
-        
+
         $order->update(['status' => 'delivered']);
         return response()->json(['success' => true, 'message' => 'Delivery confirmed']);
     }
@@ -325,14 +327,14 @@ class OrderController extends Controller
         if ($order->user_id !== $user->id) {
             return response()->json(['success' => false, 'message' => 'Unauthorized'], 403);
         }
-        
+
         // Simuler un historique (à adapter selon votre modèle)
         $history = [
             ['status' => 'pending', 'date' => $order->created_at],
             ['status' => 'processing', 'date' => $order->updated_at],
             // Ajouter plus d'étapes selon le statut actuel
         ];
-        
+
         return response()->json(['success' => true, 'data' => $history]);
     }
 
@@ -345,12 +347,12 @@ class OrderController extends Controller
         if ($order->user_id !== $user->id) {
             return response()->json(['success' => false, 'message' => 'Unauthorized'], 403);
         }
-        
+
         $returnData = $request->validate([
             'reason' => 'required|string',
             'items' => 'required|array'
         ]);
-        
+
         // Logique de retour (à implémenter selon vos besoins)
         return response()->json(['success' => true, 'message' => 'Return request submitted']);
     }
@@ -364,12 +366,12 @@ class OrderController extends Controller
         if ($order->user_id !== $user->id) {
             return response()->json(['success' => false, 'message' => 'Unauthorized'], 403);
         }
-        
+
         $ratingData = $request->validate([
             'rating' => 'required|integer|min:1|max:5',
             'comment' => 'nullable|string'
         ]);
-        
+
         // Logique de notation (à implémenter selon vos besoins)
         return response()->json(['success' => true, 'message' => 'Rating submitted']);
     }
@@ -383,7 +385,7 @@ class OrderController extends Controller
         if ($order->user_id !== $user->id) {
             return response()->json(['success' => false, 'message' => 'Unauthorized'], 403);
         }
-        
+
         return response()->json(['success' => true, 'data' => ['status' => $order->payment_status]]);
     }
 
@@ -396,12 +398,12 @@ class OrderController extends Controller
         if ($order->user_id !== $user->id) {
             return response()->json(['success' => false, 'message' => 'Unauthorized'], 403);
         }
-        
+
         $paymentData = $request->validate([
             'payment_method' => 'required|string',
             'payment_data' => 'required|array'
         ]);
-        
+
         // Logique de paiement (à implémenter selon vos besoins)
         return response()->json(['success' => true, 'message' => 'Payment processed']);
     }
@@ -413,7 +415,7 @@ class OrderController extends Controller
     {
         $items = $request->input('items', []);
         $availability = [];
-        
+
         foreach ($items as $item) {
             $product = Product::find($item['product_id']);
             $available = $product && $product->stock >= $item['quantity'];
@@ -423,7 +425,7 @@ class OrderController extends Controller
                 'stock' => $product ? $product->stock : 0
             ];
         }
-        
+
         return response()->json(['success' => true, 'data' => $availability]);
     }
 
@@ -436,10 +438,10 @@ class OrderController extends Controller
             'address' => 'required|string',
             'items' => 'required|array'
         ]);
-        
+
         // Logique de calcul des frais de livraison (exemple simple)
         $shippingCost = 5.99; // Frais fixes pour l'exemple
-        
+
         return response()->json(['success' => true, 'data' => ['shipping_cost' => $shippingCost]]);
     }
 
@@ -450,15 +452,15 @@ class OrderController extends Controller
     {
         $code = $request->input('code');
         $total = $request->input('total');
-        
+
         // Logique de validation du code promo (exemple simple)
         $discount = 0;
         if ($code === 'WELCOME10') {
             $discount = $total * 0.10; // 10% de réduction
         }
-        
+
         return response()->json([
-            'success' => true, 
+            'success' => true,
             'data' => [
                 'discount' => $discount,
                 'final_total' => $total - $discount
@@ -485,7 +487,7 @@ class OrderController extends Controller
                 'total_orders' => Order::count(),
                 'total_revenue' => Order::sum('total_amount'),
                 'average_order_value' => Order::avg('total_amount'),
-                
+
                 // Status counts
                 'status_counts' => [
                     'pending' => Order::where('status', 'pending')->count(),
@@ -494,7 +496,7 @@ class OrderController extends Controller
                     'delivered' => Order::where('status', 'delivered')->count(),
                     'cancelled' => Order::where('status', 'cancelled')->count(),
                 ],
-                
+
                 // Payment status counts
                 'payment_status_counts' => [
                     'pending' => Order::where('payment_status', 'pending')->count(),
@@ -520,4 +522,4 @@ class OrderController extends Controller
             ], 500);
         }
     }
-} 
+}

@@ -39,7 +39,7 @@ class PaymentController extends Controller
 
         $order = Order::findOrFail($request->order_id);
 
-        // Check if user owns this order
+        //  Vérifier si l'utilisateur possède cette commande
         if ($order->user_id !== $request->user()->id) {
             return response()->json([
                 'success' => false,
@@ -47,7 +47,7 @@ class PaymentController extends Controller
             ], 403);
         }
 
-        // Check if order is already paid
+        // Vérifier si la commande est déjà payée
         if ($order->isPaid()) {
             return response()->json([
                 'success' => false,
@@ -65,7 +65,8 @@ class PaymentController extends Controller
                 ],
             ]);
 
-            // Create or update payment record
+            // Créer ou mettre à jour l’enregistrement du paiement
+
             $payment = Payment::updateOrCreate(
                 ['order_id' => $order->id],
                 [
@@ -116,10 +117,10 @@ class PaymentController extends Controller
 
         try {
             $paymentIntent = PaymentIntent::retrieve($request->payment_intent_id);
-            
+
             if ($paymentIntent->status === 'succeeded') {
                 $payment = Payment::where('stripe_payment_intent_id', $request->payment_intent_id)->first();
-                
+
                 if ($payment) {
                     $payment->update(['status' => 'paid']);
                     $payment->order->update(['payment_status' => 'paid']);
@@ -206,4 +207,4 @@ class PaymentController extends Controller
             'message' => 'Cash on delivery payment marked as received'
         ]);
     }
-} 
+}
