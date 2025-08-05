@@ -1,0 +1,47 @@
+{
+  "name": "ecommerce-backend",
+  "description": "Backend Laravel pour plateforme e-commerce",
+  "repository": "https://github.com/Ballaniang10/E_commerce3.git",
+  "keywords": ["laravel", "php", "ecommerce", "api"],
+  "addons": [
+    "heroku-postgresql:mini"
+  ],
+  "env": {
+    "APP_ENV": {
+      "description": "Environment de l'application",
+      "value": "production"
+    },
+    "APP_DEBUG": {
+      "description": "Mode debug",
+      "value": "false"
+    },
+    "APP_KEY": {
+      "description": "Clé de chiffrement Laravel",
+      "generator": "secret"
+    },
+    "DB_CONNECTION": {
+      "description": "Type de base de données",
+      "value": "pgsql"
+    },
+    "CACHE_DRIVER": {
+      "description": "Driver de cache",
+      "value": "file"
+    },
+    "SESSION_DRIVER": {
+      "description": "Driver de session",
+      "value": "file"
+    },
+    "QUEUE_CONNECTION": {
+      "description": "Connection de queue",
+      "value": "sync"
+    }
+  },
+  "scripts": {
+    "postdeploy": "php artisan migrate --force"
+  },
+  "buildpacks": [
+    {
+      "url": "heroku/php"
+    }
+  ]
+} 
